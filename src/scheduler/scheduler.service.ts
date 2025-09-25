@@ -26,11 +26,8 @@ export class SchedulerService {
   async handleDailyDigest() {
     this.logger.log('Running daily digest job...');
     const digest = await this.github.getDailyCommitDigest(new Date());
-    const baseUrl = process.env.APP_BASE_URL || 'http://localhost:3000';
     const today = new Date().toISOString().slice(0, 10);
-    const formUrl = `${baseUrl}/timesheet/form?dateISO=${today}`;
-    const text = `Ежедневный дайджест коммитов:\n\n${digest}\n\nПодтвердить и дополнить: ${formUrl}`;
-    await this.slack.postMessage(text);
+    await this.slack.postDigestWithActions({ digest, dateISO: today });
   }
 
   // Каждые две недели по пятницам в 18:00 — финальный отчёт и инвойс

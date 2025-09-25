@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { GithubModule } from './github/github.module';
 import { SlackModule } from './slack/slack.module';
+import { AiModule } from './ai/ai.module';
 import { TimesheetModule } from './timesheet/timesheet.module';
 import { EmailModule } from './email/email.module';
 import { BillingModule } from './billing/billing.module';
@@ -22,6 +23,7 @@ import { GoogleModule } from './google/google.module';
     BillingModule,
     SchedulerModule,
     GoogleModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [AppService],
