@@ -168,7 +168,9 @@ export class SlackController {
         .appendEntry({ dateISO, devTasks, devHours, meetings, meetingHours })
         .then(() =>
           this.slack.postMessage(
-            `Сохранил отчёт за ${dateISO}: ${devHours}ч разработки и ${meetingHours}ч встреч.`,
+            `A saved report for ${dateISO}: ${devHours}h of development and ${meetingHours}h of meetings.
+            Link: https://docs.google.com/spreadsheets/d/${process.env.GOOGLE_SHEETS_ID}/edit
+            `,
           ),
         )
         .catch((e) => console.error('[Slack] save entry error', e));

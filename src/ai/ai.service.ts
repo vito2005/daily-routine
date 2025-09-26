@@ -20,7 +20,7 @@ export class AiService {
               parts: [
                 {
                   text:
-                    'Ты помощник для разработчика. На основе списка commit messages сформируй КРАТКИЙ список пунктов для ежедневного отчёта. Пиши на английском. Формат: название репо и маркированные пункты без лишнего текста. ' +
+                    'You are a developer assistant. Based on the commit messages, produce a SHORT bullet list for a daily report in English. Format: repository name and concise bullet points; no extra text.\n\nCommits:\n' +
                     commitsText,
                 },
               ],

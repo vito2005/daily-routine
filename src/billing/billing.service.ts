@@ -33,7 +33,7 @@ export class BillingService {
       const pdfBytes = await pdfDoc.save();
       fs.writeFileSync(outPath, pdfBytes);
     } else {
-      // Без шаблона — создаём простой PDF
+      // Without a template — create a simple PDF
       const pdfDoc = await PDFDocument.create();
       const page = pdfDoc.addPage();
       const { height } = page.getSize();

@@ -54,44 +54,20 @@ export class TimesheetService {
     this.ensureDirectoryExists(filePath);
 
     const date = params.dateISO ? dayjs(params.dateISO) : dayjs();
-    const dateDisplay = date.format('DD MMM YYYY dddd');
+    const dateDisplay = date.format('DD MMM YYYY');
+    const day = date.format('dddd');
 
-    let workbook: XLSX.WorkBook;
-    let worksheet: XLSX.WorkSheet;
-    const sheetName = 'Timesheet';
-
-    if (fs.existsSync(filePath)) {
-      workbook = XLSX.readFile(filePath);
-      worksheet =
-        workbook.Sheets[sheetName] || workbook.Sheets[workbook.SheetNames[0]];
-    } else {
-      workbook = XLSX.utils.book_new();
-      worksheet = XLSX.utils.aoa_to_sheet([
-        ['Date', 'Dev tasks', 'Dev hours', 'Meetings', 'Meeting hours'],
-      ]);
-      XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
-    }
-
-    const existingRows: any[][] = XLSX.utils.sheet_to_json(worksheet, {
-      header: 1,
-    });
     const newRow: Array<string | number> = [
       dateDisplay,
+      day,
       params.devTasks || '',
       params.devHours ?? 0,
       params.meetings || '',
       params.meetingHours ?? 0,
     ];
-    const updated: any[][] = [...existingRows, newRow];
-    const newSheet = XLSX.utils.aoa_to_sheet(updated);
-    workbook.Sheets[sheetName] = newSheet;
-    if (!workbook.SheetNames.includes(sheetName)) {
-      workbook.SheetNames.push(sheetName);
-    }
-    XLSX.writeFile(workbook, filePath);
 
-    // Additionally write to Google Sheets if configured
     try {
+      await this.sheets.ensureWeekHeaderBefore(date.toISOString());
       await this.sheets.appendRow(newRow);
     } catch (err: unknown) {
       this.logger.warn(`Google Sheets append failed: ${String(err)}`);
@@ -128,7 +104,7 @@ export class TimesheetService {
       return { devHours: 0, meetingHours: 0, total: 0 };
     }
     const workbook = XLSX.readFile(filePath);
-    const sheetName = 'Timesheet';
+    const sheetName = 'Time Tracking';
     const worksheet =
       workbook.Sheets[sheetName] || workbook.Sheets[workbook.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });

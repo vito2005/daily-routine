@@ -40,7 +40,7 @@ export class BillingController {
     });
 
     const subject = `Invoice ${invoiceNumber}`;
-    const bodyText = `Здравствуйте! Во вложении инвойс от ${dateISO}.`;
+    const bodyText = `Hello! Please find the invoice dated ${dateISO} attached.`;
     const draft = await this.email.createInvoiceDraft({
       to,
       subject,
