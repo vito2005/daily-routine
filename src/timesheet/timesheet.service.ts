@@ -90,7 +90,7 @@ export class TimesheetService {
     }
     XLSX.writeFile(workbook, filePath);
 
-    // Параллельно пишем в Google Sheets, если настроено
+    // Additionally write to Google Sheets if configured
     try {
       await this.sheets.appendRow(newRow);
     } catch (err: unknown) {
@@ -99,10 +99,10 @@ export class TimesheetService {
   }
 
   async sumHoursForLastTwoWeeks(): Promise<HoursSummary> {
-    // Сначала пробуем Google Sheets
+    // First, try Google Sheets
     try {
       const rows = await this.sheets.getRows();
-      // Ожидаем заголовок в первой строке
+      // Expect header in the first row
       const data = rows.slice(1);
       const twoWeeksAgo = dayjs().subtract(14, 'day');
       let devHours = 0;
@@ -122,7 +122,7 @@ export class TimesheetService {
       );
     }
 
-    // Фолбэк: читаем локальный Excel
+    // Fallback: read local Excel file
     const filePath = this.getFilePath();
     if (!fs.existsSync(filePath)) {
       return { devHours: 0, meetingHours: 0, total: 0 };

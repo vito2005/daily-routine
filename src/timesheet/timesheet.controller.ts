@@ -5,7 +5,7 @@ import { TimesheetService } from './timesheet.service';
 export class TimesheetController {
   constructor(private readonly timesheet: TimesheetService) {}
 
-  // Веб-форма будет POST'ить подтверждённые данные за день
+  // Web form will POST confirmed data for the day
   @Post('append')
   async append(
     @Body()
@@ -39,13 +39,13 @@ export class TimesheetController {
     </style>
   </head>
   <body>
-    <h1>Подтверждение ежедневного отчёта</h1>
+    <h1>Confirm daily report</h1>
     <form method="POST" action="/timesheet/append">
-      <label>Дата (YYYY-MM-DD)</label>
+      <label>Date (YYYY-MM-DD)</label>
       <input name="dateISO" value="${dateValue}" placeholder="2025-06-24" />
 
       <label>Dev tasks</label>
-      <textarea name="devTasks" rows="5" placeholder="Кратко что делал по разработке"></textarea>
+      <textarea name="devTasks" rows="5" placeholder="Briefly describe development tasks"></textarea>
       <div class="row">
         <div>
           <label>Dev hours</label>
@@ -56,9 +56,9 @@ export class TimesheetController {
           <input name="meetingHours" type="number" step="0.25" min="0" value="0" />
         </div>
       </div>
-      <label>Meetings / обсуждения</label>
-      <textarea name="meetings" rows="3" placeholder="Созвоны и обсуждения"></textarea>
-      <button type="submit">Сохранить</button>
+      <label>Meetings / discussions</label>
+      <textarea name="meetings" rows="3" placeholder="Calls and discussions"></textarea>
+      <button type="submit">Save</button>
     </form>
   </body>
  </html>`;

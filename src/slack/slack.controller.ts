@@ -4,7 +4,7 @@ import { GithubService } from '../github/github.service';
 import { TimesheetService } from '../timesheet/timesheet.service';
 import { AiService } from '../ai/ai.service';
 
-// Типы Slack interactivity
+// Slack interactivity types
 interface SlackUser {
   id: string;
 }
@@ -38,7 +38,7 @@ interface ViewSubmissionPayload {
   view?: SlackView;
 }
 
-// Простое in-memory состояние сессии по пользователю (или каналу)
+// Simple in-memory session state by user (or channel)
 const session: Record<string, { dateISO: string; devTasks?: string }> = {};
 
 function isObject(value: unknown): value is Record<string, unknown> {
@@ -64,7 +64,7 @@ export class SlackController {
     private readonly ai: AiService,
   ) {}
 
-  // Тестовый эндпоинт для отправки дайджеста с кнопками
+  // Test endpoint to send digest with buttons
   @Post('send-digest')
   async sendDigest(@Body() body: { channel?: string; dateISO?: string }) {
     const dateISO = body.dateISO || new Date().toISOString().slice(0, 10);
@@ -96,7 +96,7 @@ export class SlackController {
           : new Date().toISOString().slice(0, 10);
       session[userId] = { dateISO };
       const openModal = async () => {
-        // Пробуем вытащить уже подготовленный текст из блока сообщения
+        // Try to extract already prepared digest text from the message block
         const section = parsedUnknown.message?.blocks?.find(
           (b) =>
             b.type === 'section' &&
@@ -104,7 +104,7 @@ export class SlackController {
             typeof b.text.text === 'string',
         );
         const rawText = section?.text?.text || '';
-        // Ожидаемый формат: "Ежедневный дайджест за YYYY-MM-DD:\n\n<контент>"
+        // Expected format: "Daily digest for YYYY-MM-DD:\n\n<content>"
         const content = rawText.includes('\n\n')
           ? rawText.split('\n\n').slice(1).join('\n\n').trim()
           : rawText.trim();

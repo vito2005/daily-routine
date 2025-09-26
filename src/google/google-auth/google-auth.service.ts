@@ -23,7 +23,7 @@ export class GoogleAuthService {
       oAuth2Client.setCredentials(token);
       return oAuth2Client;
     }
-    // Если токена нет — просим пройти авторизацию
+    // If there is no token — ask for authorization
     const authUrl = oAuth2Client.generateAuthUrl({
       access_type: 'offline',
       scope: [
@@ -33,7 +33,7 @@ export class GoogleAuthService {
         'https://www.googleapis.com/auth/drive.readonly',
       ],
     });
-    throw new Error(`Нужна авторизация Google. Перейди: ${authUrl}`);
+    throw new Error(`Google authorization required. Open: ${authUrl}`);
   }
 
   getAuthUrl(): string {

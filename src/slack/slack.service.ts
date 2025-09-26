@@ -29,7 +29,7 @@ export class SlackService {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: `Ежедневный дайджест за ${params.dateISO}:\n\n${params.digest}`,
+          text: `Daily digest for ${params.dateISO}:\n\n${params.digest}`,
         },
       },
       {
@@ -47,7 +47,7 @@ export class SlackService {
     ];
     await this.client.chat.postMessage({
       channel,
-      text: 'Ежедневный дайджест',
+      text: 'Daily digest',
       blocks,
     });
   }
@@ -76,7 +76,7 @@ export class SlackService {
             block_id: 'dev_tasks_block',
             label: {
               type: 'plain_text',
-              text: 'Dev tasks (можно отредактировать)',
+              text: 'Dev tasks (you can edit)',
             },
             element: {
               type: 'plain_text_input',
@@ -99,7 +99,7 @@ export class SlackService {
             type: 'input',
             block_id: 'meetings_block',
             optional: true,
-            label: { type: 'plain_text', text: 'Meetings (опционально)' },
+            label: { type: 'plain_text', text: 'Meetings (optional)' },
             element: {
               type: 'plain_text_input',
               action_id: 'meetings',

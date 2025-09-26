@@ -52,12 +52,12 @@ export class GoogleSheetsService {
     const res = await sheets.spreadsheets.values.get({ spreadsheetId, range });
     const values = (res.data.values || []) as string[][];
     if (values.length <= 1) return false;
-    // Найти последнюю строку со статусом != Paid (или пустым)
+    // Find the last row with status != Paid (or empty)
     for (let i = values.length - 1; i >= 1; i -= 1) {
       const row = values[i] || [];
       const status = row[4] || '';
       if (String(status).toLowerCase() !== 'paid') {
-        const target = `Invoices!E${i + 1}`; // +1 из-за 1-базной индексации A1
+        const target = `Invoices!E${i + 1}`; // +1 due to A1 1-based index
         await sheets.spreadsheets.values.update({
           spreadsheetId,
           range: target,

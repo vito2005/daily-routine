@@ -23,7 +23,7 @@
 
 ## Description
 
-Автоматизация ежедневных отчётов: приложение собирает активность из GitHub, формирует человеко-читаемый дайджест, отправляет в Slack для подтверждения, записывает задачи и время в Excel/Google Sheets, раз в две недели генерирует PDF-счёт и черновик письма в Gmail, и отмечает оплату после получения письма.
+Daily report automation: the app collects activity from GitHub, generates a human‑readable digest, posts it to Slack for confirmation, writes tasks and time to Excel/Google Sheets, generates a PDF invoice and Gmail draft every two weeks, and marks the invoice as paid when payment emails arrive.
 
 ## Project setup
 
@@ -33,23 +33,24 @@ $ npm install
 
 ## Environment
 
-Скопируйте `env.example` в `.env` и заполните переменные:
+Copy `env.example` to `.env` and fill variables:
 
 ```
 cp env.example .env
 ```
 
-Ключевые переменные:
+Key variables:
 
-- `GITHUB_TOKEN` — токен с `repo:read`
-- `GITHUB_REPOS` — список репозиториев через запятую `owner/repo`
-- `GITHUB_BRANCH` — предпочтительная ветка (например, `dev`), фолбэк на default
-- `GITHUB_AUTHOR` — фильтрация по автору (опционально)
-- `SLACK_BOT_TOKEN`, `SLACK_CHANNEL_ID` — бот и канал для уведомлений
-- `APP_BASE_URL` — базовый URL (для ссылки на форму)
-- `GOOGLE_*`, `GMAIL_SENDER` — доступ к Gmail/Sheets
-- `TIMESHEET_XLSX_PATH` — путь к локальной таблице Excel
-- `INVOICE_TEMPLATE_PATH`, `INVOICE_OUTPUT_DIR` — шаблон и каталог для инвойсов
+- `GITHUB_TOKEN` — token with `repo:read`
+- `GITHUB_REPOS` — comma-separated list `owner/repo`
+- `GITHUB_BRANCH` — preferred branch (e.g. `dev`), fallback to default
+- `GITHUB_AUTHOR` — filter by author (optional)
+- `SLACK_BOT_TOKEN`, `SLACK_CHANNEL_ID` — bot and channel for notifications
+- `APP_BASE_URL` — base URL (for the form link)
+- `GOOGLE_*`, `GMAIL_SENDER` — access to Gmail/Sheets
+- `TIMESHEET_XLSX_PATH` — path to local Excel timesheet
+- `INVOICE_TEMPLATE_PATH`, `INVOICE_OUTPUT_DIR` — invoice template and output dir
+- `GOOGLE_AI_API_KEY`, `GOOGLE_AI_MODEL` — Gemini API key and model for AI summaries
 
 ## Compile and run the project
 

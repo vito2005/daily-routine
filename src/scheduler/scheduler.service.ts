@@ -20,7 +20,7 @@ export class SchedulerService {
     private readonly sheets: GoogleSheetsService,
   ) {}
 
-  // Ежедневный дайджест в 18:00 локального времени
+  // Daily digest at 18:00 local time
   //@Cron(CronExpression.EVERY_DAY_AT_6PM)
   @Cron('11 19 * * *')
   async handleDailyDigest() {
@@ -30,10 +30,10 @@ export class SchedulerService {
     await this.slack.postDigestWithActions({ digest, dateISO: today });
   }
 
-  // Каждые две недели по пятницам в 18:00 — финальный отчёт и инвойс
+  // Every two weeks on Friday at 18:00 — final report and invoice
   @Cron('0 18 * * 5')
   async handleBiweeklyInvoice() {
-    // Если сегодня не конец двухнедельного периода — выходим
+    // Exit if this Friday is not the end of a 2-week period
     const weekNumber = Number.parseInt(dayjs().format('W'), 10);
     if (weekNumber % 2 !== 0) return;
 
@@ -58,11 +58,11 @@ export class SchedulerService {
     await this.email.createInvoiceDraft({
       to,
       subject: `Invoice ${invoiceNumber}`,
-      body: `Здравствуйте! За последние 2 недели: ${hours.toFixed(2)} ч. Прошу оплатить инвойс во вложении.`,
+      body: `Hello! For the last 2 weeks: ${hours.toFixed(2)}h. Please find the invoice attached.`,
       pdfPath,
     });
 
-    // Логируем строку в лист Invoices (если Sheets настроен)
+    // Append row to Invoices sheet (if Sheets is configured)
     try {
       const baseUrl = process.env.APP_BASE_URL || 'http://localhost:3000';
       const invoiceRow = [
@@ -78,7 +78,7 @@ export class SchedulerService {
     }
   }
 
-  // Ежедневно проверяем оплату и помечаем последнюю неоплаченную как Paid
+  // Check payment daily and mark the last unpaid invoice as Paid
   @Cron('0 9 * * 1-5')
   async handlePaymentCheck() {
     const paid: boolean = await this.email.checkPaymentReceived({

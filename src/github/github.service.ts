@@ -25,18 +25,18 @@ export class GithubService {
   async getDailyCommitDigest(date: Date = new Date()): Promise<string> {
     const start = dayjs(date).startOf('day').toISOString();
     const end = dayjs(date).endOf('day').toISOString();
-    if (this.repos.length === 0) return 'Нет настроенных репозиториев';
+    if (this.repos.length === 0) return 'No repositories configured';
 
     const lines: string[] = [];
     for (const repo of this.repos) {
       const [owner, repoName] = repo.split('/');
       if (!owner || !repoName) continue;
 
-      // Определяем ветку: пробуем preferredBranch, иначе default_branch
+      // Determine branch: try preferredBranch, otherwise default_branch
       let branchToUse: string | undefined = this.preferredBranch;
       try {
         if (branchToUse) {
-          // Проверим, что ветка существует
+          // Ensure branch exists
           await this.octokit.git.getRef({
             owner,
             repo: repoName,
@@ -50,7 +50,7 @@ export class GithubService {
           branchToUse = repoInfo.data.default_branch;
         }
       } catch (e) {
-        // Если preferred ветка не найдена, откатываемся на default_branch
+        // If preferred branch missing, fallback to default_branch
         const repoInfo = await this.octokit.repos.get({
           owner,
           repo: repoName,
@@ -74,9 +74,9 @@ export class GithubService {
       try {
         commits = await this.octokit.repos.listCommits(params);
       } catch (err) {
-        // Если всё равно 404/422 — пропускаем репозиторий
+        // If still 404/422 — skip repository
         lines.push(
-          `Repo ${owner}/${repoName}: не удалось получить коммиты (ветка: ${branchToUse}).`,
+          `Repo ${owner}/${repoName}: failed to fetch commits (branch: ${branchToUse}).`,
         );
         lines.push('');
         continue;
@@ -92,6 +92,6 @@ export class GithubService {
       lines.push('');
     }
 
-    return lines.length ? lines.join('\n') : 'Коммитов за день не найдено';
+    return lines.length ? lines.join('\n') : 'No commits found for the day';
   }
 }
