@@ -1,40 +1,44 @@
 import { Injectable } from '@nestjs/common';
+import { GoogleGenAI } from '@google/genai';
 
 @Injectable()
 export class AiService {
-  private apiKey = process.env.OPENAI_API_KEY || '';
-  private baseUrl = process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1';
-  private model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+  // Google AI Studio (Gemini)
+  private googleApiKey = process.env.GOOGLE_AI_API_KEY || '';
+  private googleModel = process.env.GOOGLE_AI_MODEL || 'gemini-2.5-flash';
+  private googleAi = new GoogleGenAI({ apiKey: this.googleApiKey });
 
   async summarizeCommits(commitsText: string): Promise<string> {
-    if (!this.apiKey) {
-      return commitsText; // фолбэк — без ИИ возвращаем исходный текст
-    }
-    try {
-      const res = await fetch(`${this.baseUrl}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.apiKey}`,
-        },
-        body: JSON.stringify({
-          model: this.model,
-          messages: [
+    // 1) Try Google AI Studio first
+    if (this.googleApiKey) {
+      try {
+        const response = await this.googleAi.models.generateContent({
+          model: this.googleModel,
+          contents: [
             {
-              role: 'system',
-              content:
-                'Ты помощник для разработчика. На основе списка commit messages сформируй краткий список пунктов для ежедневного отчёта. Пиши на русском. Формат: маркированные пункты, без воды.',
+              role: 'user',
+              parts: [
+                {
+                  text:
+                    'Ты помощник для разработчика. На основе списка commit messages сформируй КРАТКИЙ список пунктов для ежедневного отчёта. Пиши на английском. Формат: название репо и маркированные пункты без лишнего текста. ' +
+                    commitsText,
+                },
+              ],
             },
-            { role: 'user', content: commitsText },
           ],
-          temperature: 0.2,
-        }),
-      });
-      const data = await res.json();
-      const text: string = data?.choices?.[0]?.message?.content || commitsText;
-      return text.trim();
-    } catch (e) {
-      return commitsText;
+          config: {
+            thinkingConfig: {
+              thinkingBudget: 0, // Disables thinking
+            },
+          },
+        });
+        const text = response?.text;
+        if (typeof text === 'string' && text.trim()) return text.trim();
+      } catch (e) {
+        console.error('[Ai] summarizeCommits error', e);
+      }
     }
+
+    return commitsText;
   }
 }

@@ -37,7 +37,7 @@ export class SlackService {
         elements: [
           {
             type: 'button',
-            text: { type: 'plain_text', text: 'Start daily report' },
+            text: { type: 'plain_text', text: 'Start report' },
             style: 'primary',
             action_id: 'start_report',
             value: params.dateISO,

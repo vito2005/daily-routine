@@ -25,6 +25,12 @@ interface BlockActionsPayload {
   user?: SlackUser;
   actions?: SlackAction[];
   trigger_id: string;
+  message?: {
+    blocks?: Array<{
+      type?: string;
+      text?: { type?: string; text?: string };
+    }>;
+  };
 }
 interface ViewSubmissionPayload {
   type: 'view_submission';
@@ -63,9 +69,12 @@ export class SlackController {
   async sendDigest(@Body() body: { channel?: string; dateISO?: string }) {
     const dateISO = body.dateISO || new Date().toISOString().slice(0, 10);
     const digest = await this.github.getDailyCommitDigest(new Date(dateISO));
+    const summarized = await this.ai.summarizeCommits(digest);
+    console.log('[Slack] summarized', summarized);
+
     await this.slack.postDigestWithActions({
       channel: body.channel,
-      digest,
+      digest: summarized,
       dateISO,
     });
     return { ok: true };
@@ -87,22 +96,31 @@ export class SlackController {
           : new Date().toISOString().slice(0, 10);
       session[userId] = { dateISO };
       const openModal = async () => {
-        const raw = await this.github.getDailyCommitDigest(new Date(dateISO));
-        const summarized = await this.ai.summarizeCommits(raw);
+        // Пробуем вытащить уже подготовленный текст из блока сообщения
+        const section = parsedUnknown.message?.blocks?.find(
+          (b) =>
+            b.type === 'section' &&
+            b.text?.type === 'mrkdwn' &&
+            typeof b.text.text === 'string',
+        );
+        const rawText = section?.text?.text || '';
+        // Ожидаемый формат: "Ежедневный дайджест за YYYY-MM-DD:\n\n<контент>"
+        const content = rawText.includes('\n\n')
+          ? rawText.split('\n\n').slice(1).join('\n\n').trim()
+          : rawText.trim();
+
         await this.slack.openDailyModal(parsedUnknown.trigger_id, {
           dateISO,
-          devTasks: summarized,
+          devTasks: content || '—',
           devHours: '0',
           meetings: '',
           meetingHours: '0',
         });
       };
       if (action?.action_id === 'start_report') {
-        try {
-          await openModal();
-        } catch (e) {
-          console.error('[Slack] openDailyModal error', e);
-        }
+        openModal().catch((e) =>
+          console.error('[Slack] openDailyModal error', e),
+        );
 
         return '';
       }

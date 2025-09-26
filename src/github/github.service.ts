@@ -23,7 +23,7 @@ export class GithubService {
   }
 
   async getDailyCommitDigest(date: Date = new Date()): Promise<string> {
-    const start = '2025-07-22T00:00:00Z'; //dayjs(date).startOf('day').toISOString();
+    const start = dayjs(date).startOf('day').toISOString();
     const end = dayjs(date).endOf('day').toISOString();
     if (this.repos.length === 0) return 'Нет настроенных репозиториев';
 
