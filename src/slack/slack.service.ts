@@ -220,4 +220,8 @@ export class SlackService {
   getConfiguredSheetsId(): string | undefined {
     return this.settingsService.getSheetsId();
   }
+
+  checkSettings(): void {
+    this.settingsService.getSheetsIdOrThrow();
+  }
 }

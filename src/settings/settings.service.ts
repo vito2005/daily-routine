@@ -32,13 +32,16 @@ export class SettingsService {
     fs.writeFileSync(this.filePath, JSON.stringify(data, null, 2));
   }
 
-  getSheetsId(): string {
-    const id = this.read().googleSheetsId;
-    if (!id) {
+  getSheetsId(): string | undefined {
+    return this.read().googleSheetsId;
+  }
+
+  getSheetsIdOrThrow(): string {
+    const id = this.getSheetsId();
+    if (!id)
       throw new Error(
         'Google Sheets ID is not configured. Use /settings to set it.',
       );
-    }
     return id;
   }
 

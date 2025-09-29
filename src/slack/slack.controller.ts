@@ -117,6 +117,21 @@ export class SlackController {
         });
       };
       if (action?.action_id === 'start_report') {
+        try {
+          this.slack.checkSettings();
+        } catch (err) {
+          const channelId =
+            (parsedUnknown as any)?.channel?.id ||
+            (parsedUnknown as any)?.container?.channel_id;
+          const msg =
+            'Google Sheets ID is not configured. Use /settings to set it.';
+          if (channelId) {
+            // Send a visible message to the same place where the button was clicked
+            this.slack.postMessage(msg, channelId).catch(() => {});
+          }
+          return '';
+        }
+
         openModal().catch((e) =>
           console.error('[Slack] openDailyModal error', e),
         );
