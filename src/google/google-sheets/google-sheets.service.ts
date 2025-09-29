@@ -21,17 +21,6 @@ export class GoogleSheetsService {
     });
   }
 
-  async getLastWeekNumber() {
-    const rows = await this.getRows('Time Tracking!A:A');
-    // Find the last Monday header like "Week NN"
-    for (let i = rows.length - 1; i >= 0; i -= 1) {
-      const cell = (rows[i]?.[0] || '').toString();
-      const m = cell.match(/^Week\s+(\d{1,2})/i);
-      if (m) return Number(m[1]);
-    }
-    return 0;
-  }
-
   async getRows(range = 'Time Tracking!A:E') {
     const spreadsheetId = process.env.GOOGLE_SHEETS_ID || '';
     if (!spreadsheetId) throw new Error('GOOGLE_SHEETS_ID is not set');

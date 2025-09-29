@@ -66,14 +66,13 @@ export class SlackController {
 
   // Test endpoint to send digest with buttons
   @Post('send-digest')
-  async sendDigest(@Body() body: { channel?: string; dateISO?: string }) {
+  async sendDigest(@Body() body: { userId: string; dateISO?: string }) {
     const dateISO = body.dateISO || new Date().toISOString().slice(0, 10);
     const digest = await this.github.getDailyCommitDigest(new Date(dateISO));
     const summarized = await this.ai.summarizeCommits(digest);
     console.log('[Slack] summarized', summarized);
 
-    await this.slack.postDigestWithActions({
-      channel: body.channel,
+    await this.slack.postDigestDM(body.userId, {
       digest: summarized,
       dateISO,
     });
@@ -180,5 +179,25 @@ export class SlackController {
     }
 
     return '';
+  }
+
+  // Slash commands: /start and /stop
+  @Post('commands')
+  @HttpCode(200)
+  async commands(@Body() body: { command: string; user_id: string }) {
+    // Slack sends application/x-www-form-urlencoded, Nest parses into body
+    const command = body?.command as string | undefined;
+    const userId = body?.user_id as string | undefined;
+    if (!command || !userId) return 'Missing command or user';
+
+    if (command === '/start') {
+      this.slack.subscribeUser(userId);
+      return 'Subscribed to daily digests. You will receive a message every working day at 20:30 in local time.';
+    }
+    if (command === '/stop') {
+      this.slack.unsubscribeUser(userId);
+      return 'Unsubscribed from daily digests. You will no longer receive messages.';
+    }
+    return 'Unknown command.';
   }
 }

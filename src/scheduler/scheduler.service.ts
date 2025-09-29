@@ -22,11 +22,23 @@ export class SchedulerService {
 
   // Daily digest at 18:00 local time
   //@Cron(CronExpression.EVERY_DAY_AT_6PM)
-  @Cron('11 19 * * *')
+  @Cron('30 20 * * 1-5')
   async handleDailyDigest() {
     this.logger.log('Running daily digest job...');
     const digest = await this.github.getDailyCommitDigest(new Date());
     const today = new Date().toISOString().slice(0, 10);
+    // If there are subscribers, DM each; otherwise fallback to default channel/DM env
+    try {
+      const subs = this.slack.listSubscribers();
+      if (subs.length > 0) {
+        for (const userId of subs) {
+          await this.slack.postDigestDM(userId, { digest, dateISO: today });
+        }
+        return;
+      }
+    } catch (e) {
+      this.logger.warn(`Fetching subscribers failed: ${String(e)}`);
+    }
     await this.slack.postDigestWithActions({ digest, dateISO: today });
   }
 

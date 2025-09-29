@@ -1,18 +1,24 @@
 import { Injectable } from '@nestjs/common';
 import { WebClient } from '@slack/web-api';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class SlackService {
   private readonly client: WebClient;
-  private readonly defaultChannel: string | undefined;
+  private readonly subscribersPath: string;
 
   constructor() {
     this.client = new WebClient(process.env.SLACK_BOT_TOKEN);
-    this.defaultChannel = process.env.SLACK_CHANNEL_ID;
+    this.subscribersPath = path.resolve(
+      process.cwd(),
+      'data',
+      'subscribers.json',
+    );
   }
 
   async postMessage(text: string, channel?: string): Promise<void> {
-    const target = channel ?? this.defaultChannel;
+    const target = channel;
     if (!target) return;
     await this.client.chat.postMessage({ channel: target, text });
   }
@@ -22,7 +28,7 @@ export class SlackService {
     digest: string;
     dateISO: string;
   }): Promise<void> {
-    const channel = params.channel ?? this.defaultChannel;
+    const channel = params.channel;
     if (!channel) return;
     const blocks = [
       {
@@ -121,5 +127,58 @@ export class SlackService {
         ],
       },
     });
+  }
+
+  // --- DM posting for specific userId ---
+  async postDigestDM(
+    userId: string,
+    params: { digest: string; dateISO: string },
+  ): Promise<void> {
+    const dm = await this.client.conversations.open({ users: userId });
+    const channel = dm.channel?.id;
+    console.log('[Slack] DM channel:', channel);
+    if (!channel) return;
+    await this.postDigestWithActions({
+      channel,
+      digest: params.digest,
+      dateISO: params.dateISO,
+    });
+  }
+
+  // --- Simple subscribers file store ---
+  private readSubscribers(): string[] {
+    try {
+      if (!fs.existsSync(this.subscribersPath)) return [];
+      const raw = fs.readFileSync(this.subscribersPath, 'utf8');
+      const parsed = JSON.parse(raw) as string[];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private writeSubscribers(list: string[]): void {
+    const dir = path.dirname(this.subscribersPath);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(
+      this.subscribersPath,
+      JSON.stringify(Array.from(new Set(list)), null, 2),
+    );
+  }
+
+  subscribeUser(userId: string): void {
+    const list = this.readSubscribers();
+    if (!list.includes(userId)) list.push(userId);
+    this.writeSubscribers(list);
+  }
+
+  unsubscribeUser(userId: string): void {
+    const list = this.readSubscribers();
+    const next = list.filter((x) => x !== userId);
+    this.writeSubscribers(next);
+  }
+
+  listSubscribers(): string[] {
+    return this.readSubscribers();
   }
 }
