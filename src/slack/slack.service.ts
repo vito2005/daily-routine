@@ -2,13 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { WebClient } from '@slack/web-api';
 import * as fs from 'fs';
 import * as path from 'path';
+import { SettingsService } from '../settings/settings.service';
 
 @Injectable()
 export class SlackService {
   private readonly client: WebClient;
   private readonly subscribersPath: string;
 
-  constructor() {
+  constructor(private readonly settingsService: SettingsService) {
     this.client = new WebClient(process.env.SLACK_BOT_TOKEN);
     this.subscribersPath = path.resolve(
       process.cwd(),
@@ -180,5 +181,43 @@ export class SlackService {
 
   listSubscribers(): string[] {
     return this.readSubscribers();
+  }
+
+  // --- Settings modal ---
+  async openSettingsModal(triggerId: string): Promise<void> {
+    const current = this.settingsService.getSheetsId() || '';
+    await this.client.views.open({
+      trigger_id: triggerId,
+      view: {
+        type: 'modal',
+        callback_id: 'settings_submit',
+        title: { type: 'plain_text', text: 'Settings' },
+        submit: { type: 'plain_text', text: 'Save' },
+        blocks: [
+          {
+            type: 'input',
+            block_id: 'sheets_id_block',
+            label: { type: 'plain_text', text: 'Google Sheets ID' },
+            element: {
+              type: 'plain_text_input',
+              action_id: 'sheets_id',
+              initial_value: current,
+            },
+          },
+        ],
+      },
+    });
+  }
+
+  saveSettingsFromView(view: any): void {
+    const val = view?.state?.values?.sheets_id_block?.sheets_id?.value;
+    if (typeof val === 'string' && val.trim()) {
+      this.settingsService.setSheetsId(val.trim());
+    }
+  }
+
+  // Helper for controllers to reference configured Sheets id
+  getConfiguredSheetsId(): string | undefined {
+    return this.settingsService.getSheetsId();
   }
 }

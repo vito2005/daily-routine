@@ -1,14 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { google } from 'googleapis';
 import { GoogleAuthService } from '../google-auth/google-auth.service';
+import { SettingsService } from '../../settings/settings.service';
 
 @Injectable()
 export class GoogleSheetsService {
-  constructor(private readonly auth: GoogleAuthService) {}
+  constructor(
+    private readonly auth: GoogleAuthService,
+    private readonly settings: SettingsService,
+  ) {}
 
   async appendRow(values: Array<string | number>) {
-    const spreadsheetId = process.env.GOOGLE_SHEETS_ID || '';
-    if (!spreadsheetId) throw new Error('GOOGLE_SHEETS_ID is not set');
+    const spreadsheetId = this.settings.getSheetsId();
     const authClient = await this.auth.getAuthorizedClient();
     const sheets = google.sheets({ version: 'v4', auth: authClient });
     await sheets.spreadsheets.values.append({
@@ -22,8 +25,7 @@ export class GoogleSheetsService {
   }
 
   async getRows(range = 'Time Tracking!A:E') {
-    const spreadsheetId = process.env.GOOGLE_SHEETS_ID || '';
-    if (!spreadsheetId) throw new Error('GOOGLE_SHEETS_ID is not set');
+    const spreadsheetId = this.settings.getSheetsId();
     const authClient = await this.auth.getAuthorizedClient();
     const sheets = google.sheets({ version: 'v4', auth: authClient });
     const res = await sheets.spreadsheets.values.get({ spreadsheetId, range });
@@ -31,8 +33,7 @@ export class GoogleSheetsService {
   }
 
   async appendTo(range: string, values: Array<string | number>) {
-    const spreadsheetId = process.env.GOOGLE_SHEETS_ID || '';
-    if (!spreadsheetId) throw new Error('GOOGLE_SHEETS_ID is not set');
+    const spreadsheetId = this.settings.getSheetsId();
     const authClient = await this.auth.getAuthorizedClient();
     const sheets = google.sheets({ version: 'v4', auth: authClient });
     await sheets.spreadsheets.values.append({
@@ -58,8 +59,8 @@ export class GoogleSheetsService {
 
   // Ensure a "Week NN" header row exists before Monday entries
   async ensureWeekHeaderBefore(dateISO: string) {
-    const spreadsheetId = process.env.GOOGLE_SHEETS_ID || '';
-    if (!spreadsheetId) return;
+    const spreadsheetId = this.settings.getSheetsId();
+    if (!spreadsheetId) throw new Error('Google Sheets ID is not configured');
     const date = new Date(dateISO);
     const isMonday = date.getDay() === 1;
     if (!isMonday) return;

@@ -11,6 +11,7 @@ import { EmailModule } from './email/email.module';
 import { BillingModule } from './billing/billing.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
 import { GoogleModule } from './google/google.module';
+import { SettingsModule } from './settings/settings.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { GoogleModule } from './google/google.module';
     SchedulerModule,
     GoogleModule,
     AiModule,
+    SettingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
